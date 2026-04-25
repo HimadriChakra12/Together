@@ -1,0 +1,77 @@
+<div id="wrapper">
+  <div id="time-counter">
+    <p id="timer">Loading...</p>
+  </div>
+</div>
+
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #ffe6f0, #e6f7ff);
+  }
+
+  /* CENTER EVERYTHING */
+  #wrapper {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #time-counter {
+    width: 60%;
+    padding: 25px;
+    text-align: center;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    animation: fadeIn 1.5s ease;
+  }
+
+  #time-counter h2 {
+    color: #ff6b9a;
+    margin-bottom: 15px;
+  }
+
+  #timer {
+    font-size: 40px;
+    color: #555;
+    line-height: 1.6;
+    transition: transform 0.2s ease;
+  }
+
+  #timer:hover {
+    transform: scale(1.05);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<script>
+  function updateTimer() {
+    const startDate = new Date(2026, 2, 28, 12, 0, 0);
+
+    const now = new Date();
+    const diff = now - startDate;
+
+    if (diff < 0) {
+      document.getElementById("timer").innerText = "Waiting for the moment 💫";
+      return;
+    }
+
+    const seconds = Math.floor(diff / 1000) % 60;
+    const minutes = Math.floor(diff / (1000 * 60)) % 60;
+    const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    document.getElementById("timer").innerText =
+      `${days} days 🌷 ${hours} hrs 🌼 ${minutes} min 🌸 ${seconds} sec 💕`;
+  }
+
+  setInterval(updateTimer, 1000);
+  updateTimer();
+</script>
