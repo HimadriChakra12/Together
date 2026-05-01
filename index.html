@@ -90,7 +90,7 @@
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     document.getElementById("timer").innerText =
-      `${days} days 🌷 ${hours} hrs 🌼 ${minutes} min 🌸 ${seconds} sec 💕`;
+      `${days}D . ${hours}H ♡ ${minutes}M . ${seconds}S`;
   }
 
   function updateMiniTimer() {
@@ -107,7 +107,7 @@
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     document.getElementById("mini-timer").innerText =
-      `Mini: ${days} days passed 🌿`;
+      `${days}`;
   }
 
   setInterval(updateTimer, 1000);
