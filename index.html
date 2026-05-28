@@ -2,80 +2,184 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dual Timer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dual Timer - Continuous Card Slide</title>
 
 <style>
+  /* GRUVBOX COLOR PALETTE & GLOBAL STYLES */
   body {
     margin: 0;
-    font-family: 'Segoe ', sans-serif;
-    background: linear-gradient(135deg, #ffe6f0, #e6f7ff);
-  }
-
-  /* CENTER EVERYTHING */
-  #wrapper {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1d2021; /* Gruvbox dark0_hard */
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
   }
 
-  #time-counter {
-    width: 60%;
-    padding: 25px;
-    text-align: center;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    animation: fadeIn 1.5s ease;
+  /* CONTAINER FOR THE STACKED CARDS */
+  .card-container {
+    position: relative;
+    width: 380px;
+    height: 260px;
   }
 
-  #time-counter h2 {
-    color: #ff6b9a;
-    margin-bottom: 15px;
+  /* BASE CARD STYLES */
+  .card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    padding: 30px;
+    box-sizing: border-box;
+    cursor: pointer;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    
+    /* Smooth, snappy physics transition */
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1), 
+                z-index 0.5s step-end, 
+                box-shadow 0.4s ease;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    user-select: none;
   }
 
-  #timer {
-    font-size: 40px;
-    color: #555;
-    line-height: 1.6;
-    transition: transform 0.2s ease;
+  /* CARD TITLES */
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 0;
+    opacity: 0.8;
   }
 
-  #timer:hover {
-    transform: scale(1.05);
+  /* CARD CONTENT */
+  .card-content {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: auto;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
   }
 
-  /* MINI COUNTER STYLE */
-  #mini-timer {
-    font-size: 18px;
-    color: #888;
-    margin-top: 5px;
-    padding: 8px 12px;
-    display: inline-block;
-    background: #f9f9f9;
-    border-radius: 12px;
+  /* CARD 1: MAIN TIMER (Gruvbox Orange) */
+  #main-timer-card {
+    background-color: #fe8019; /* Gruvbox bright_orange */
+    color: #282828; /* Gruvbox dark0 */
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* CARD 2: MINI TIMER (Gruvbox Green) */
+  #mini-timer-card {
+    background-color: #b8bb26; /* Gruvbox bright_green */
+    color: #282828; /* Gruvbox dark0 */
+  }
+
+  /* --- STACKING POSITIONS --- */
+
+  /* Front Card Position */
+  .card.active {
+    z-index: 5;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+
+  /* Back Card Position (Peeking out top) */
+  .card.back {
+    z-index: 1;
+    transform: translateY(-45px) scale(0.92);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Gentle hover interaction for the back card specifically */
+  .card.back:hover {
+    transform: translateY(-55px) scale(0.94);
+  }
+
+  /* --- THE FRESH SLIDE-ON-TOP ANIMATION STATES --- */
+  
+  /* When a card is moving from back to front */
+  .card.sliding-up {
+    z-index: 10 !important; 
+    transform: translateY(-220px) scale(1.05) rotate(-4deg);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* When a card is dipping low to slide underneath */
+  .card.sliding-down {
+    z-index: 1 !important;
+    transform: translateY(40px) scale(0.95) rotate(2deg);
+    opacity: 0.6;
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
   }
 </style>
 </head>
-
 <body>
 
-<div id="wrapper">
-  <div id="time-counter">
-    <p id="timer">Loading...</p>
-    <p id="mini-timer">Loading mini counter...</p>
+<div class="card-container">
+  <div id="main-timer-card" class="card active" onclick="handleCardClick('main-timer-card')">
+    <p class="card-title">♡ Main Timer ♡</p>
+    <div id="timer" class="card-content">Loading...</div>
+  </div>
+
+  <div id="mini-timer-card" class="card back" onclick="handleCardClick('mini-timer-card')">
+    <p class="card-title">✨ Mini Counter ✨</p>
+    <div id="mini-timer" class="card-content">Loading mini counter...</div>
   </div>
 </div>
 
 <script>
+  let isAnimating = false;
+
+  function handleCardClick(clickedCardId) {
+    if (isAnimating) return; // Prevent spam clicks during animation frame
+
+    const mainCard = document.getElementById('main-timer-card');
+    const miniCard = document.getElementById('mini-timer-card');
+    
+    const clickedCard = (clickedCardId === 'main-timer-card') ? mainCard : miniCard;
+    const otherCard = (clickedCard === mainCard) ? miniCard : mainCard;
+
+    isAnimating = true;
+
+    if (clickedCard.classList.contains('back')) {
+      // SCENARIO A: User clicks the back card -> Bring it to the front
+      clickedCard.classList.add('sliding-up');
+
+      setTimeout(() => {
+        clickedCard.classList.remove('back', 'sliding-up');
+        clickedCard.classList.add('active');
+
+        otherCard.classList.remove('active');
+        otherCard.classList.add('back');
+
+        isAnimating = false;
+      }, 220);
+
+    } else {
+      // SCENARIO B: User clicks the front card -> Send it to the back & pop up the second one
+      otherCard.classList.add('sliding-up');
+      clickedCard.classList.add('sliding-down');
+
+      setTimeout(() => {
+        // Swap core positions
+        clickedCard.classList.remove('active', 'sliding-down');
+        clickedCard.classList.add('back');
+
+        otherCard.classList.remove('back', 'sliding-up');
+        otherCard.classList.add('active');
+
+        isAnimating = false;
+      }, 220);
+    }
+  }
+
+  // TIMER LOGIC
   function updateTimer() {
     const startDate = new Date(2026, 2, 28, 12, 0, 0); // March 28, 2026
-
     const now = new Date();
     const diff = now - startDate;
 
@@ -89,25 +193,22 @@
     const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    document.getElementById("timer").innerText =
-      `${days}D 💕 ${hours}H ♡ ${minutes}M 💕 ${seconds}S`;
+    document.getElementById("timer").innerHTML =
+      `${days}D <span style="font-size:18px; opacity:0.7;">Days</span><br>${hours}H : ${minutes}M : ${seconds}S`;
   }
 
   function updateMiniTimer() {
     const miniStartDate = new Date(2026, 0, 24, 0, 0, 0); // Jan 24, 2026
-
     const now = new Date();
     const diff = now - miniStartDate;
 
     if (diff < 0) {
-      document.getElementById("mini-timer").innerText = "Mini counter not started yet ✨";
+      document.getElementById("mini-timer").innerText = "Not started yet ✨";
       return;
     }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    document.getElementById("mini-timer").innerText =
-      `${days}`;
+    document.getElementById("mini-timer").innerHTML = `${days} <span style="font-size:18px; opacity:0.7;">Days Logged</span>`;
   }
 
   setInterval(updateTimer, 1000);
